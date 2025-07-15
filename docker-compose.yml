@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: kanban-db
+    restart: always
+    environment:
+      POSTGRES_USER: kanban
+      POSTGRES_PASSWORD: kanban
+      POSTGRES_DB: kanban
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: kanban-pgadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@kanban.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    depends_on:
+      - db
+
+  server:
+    build: ./server
+    container_name: kanban-api
+    volumes:
+      - ./server/.env:/srv/app/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://kanban:kanban@db:5432/kanban
+
+  client:
+    build: ./client
+    container_name: kanban-client
+    command: npm run dev -- --host 0.0.0.0
+    working_dir: /usr/src/app
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - ./client/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
