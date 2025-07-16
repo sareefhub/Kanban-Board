@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './AuthModal.css';
 import { registerUser, loginUser } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
+import { showLoginSuccess } from '../../utils/SweetAlertHelper';
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           password: form.password,
         });
         login(data.access_token, data.user);
+        await showLoginSuccess(data.user.username);
       } else {
         const data = await registerUser({
           username: form.username,

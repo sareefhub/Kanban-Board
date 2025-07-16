@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { confirmLogout, showLogoutSuccess } from '../../utils/SweetAlertHelper';
 import './Navbar.css';
 
 export interface NavbarProps {
@@ -33,6 +34,14 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleLogoutClick = async () => {
+    const confirmed = await confirmLogout();
+    if (confirmed && onLogout) {
+      onLogout();
+      showLogoutSuccess();
+    }
+  };
+
   return (
     <header className="navbar">
       <div className="navbar-left">
@@ -61,7 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <ul className="user-dropdown">
               <li className="username">{username ?? 'Guest'}</li>
               {username ? (
-                <li onClick={onLogout}>Logout</li>
+                <li onClick={handleLogoutClick}>Logout</li>
               ) : (
                 <li onClick={onSignIn}>Sign In</li>
               )}
