@@ -13,6 +13,6 @@ class Task(Base):
     column_id = Column(Integer, ForeignKey("columns.id", ondelete="CASCADE"))
 
     column = relationship("BoardColumn", back_populates="tasks")
-    tags = relationship("TaskTag", back_populates="task", cascade="all, delete-orphan", overlaps="tag_items")
-    tag_items = relationship("Tag", secondary="task_tags", back_populates="tasks", overlaps="tags")
+    # tags = relationship("TaskTag", back_populates="task", cascade="all, delete-orphan", overlaps="tag_items")
+    # tag_items = relationship("Tag", secondary="task_tags", back_populates="tasks", overlaps="tags")
     assignees = relationship("TaskAssignee", back_populates="task", cascade="all, delete-orphan")

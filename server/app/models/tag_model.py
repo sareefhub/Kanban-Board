@@ -9,5 +9,5 @@ class Tag(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, nullable=False)
     
-    task_tags = relationship("TaskTag", back_populates="tag", overlaps="tasks")
-    tasks = relationship("Task", secondary="task_tags", back_populates="tag_items", overlaps="tag_items,task_tags")
+    # task_tags = relationship("TaskTag", back_populates="tag", overlaps="tasks")
+    # tasks = relationship("Task", secondary="task_tags", back_populates="tag_items", overlaps="tag_items,task_tags")
