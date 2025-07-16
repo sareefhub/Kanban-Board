@@ -3,8 +3,21 @@ from sqlalchemy import text
 from app.database import engine, Base
 import app.models
 from app.routers import api_router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ลบทุกตารางด้วย CASCADE แล้วสร้างตารางใหม่
 # with engine.connect() as conn:

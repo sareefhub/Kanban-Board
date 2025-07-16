@@ -9,7 +9,10 @@ from app.schemas.auth_schema import Token, RegisterRequest
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
+class TokenWithUser(Token):
+    user: dict
+
+@router.post("/register", response_model=TokenWithUser, status_code=status.HTTP_201_CREATED)
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
     exists = db.query(User).filter(
         (User.email == req.email) | (User.username == req.username)
@@ -25,9 +28,17 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
     token = create_access_token({"user_id": user.id})
-    return {"access_token": token, "token_type": "bearer"}
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+        }
+    }
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=TokenWithUser)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
@@ -36,4 +47,12 @@ def login(
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"user_id": user.id})
-    return {"access_token": token, "token_type": "bearer"}
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+        }
+    }
