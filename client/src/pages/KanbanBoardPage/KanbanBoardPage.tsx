@@ -1,48 +1,53 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/KanbanBoardPage/KanbanBoardPage.tsx
+import React, { useState } from 'react';
 import Navbar from '../../components/Navbar/Navbar';
 import AuthModal from '../../components/AuthModal/AuthModal';
 import KanbanBoard from '../../components/KanbanBoard/KanbanBoard';
 import { Column } from '../../components/KanbanColumn/KanbanColumn';
-import { initialColumns as mockColumns } from '../../data/mockKanbanData';
 import { useAuth } from '../../context/AuthContext';
+import { createBoard, deleteBoard } from '../../api/boards';
+import { useBoards } from '../../hooks/useBoards';
 import './KanbanBoardPage.css';
-
-interface Board {
-  id: string;
-  title: string;
-  columns: Column[];
-}
 
 const KanbanBoardPage: React.FC = () => {
   const { user: authUser, logout } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
-  const [boards, setBoards] = useState<Board[]>([
-    {
-      id: Date.now().toString(),
-      title: 'Project Kanban Board 1',
-      columns: mockColumns,
-    },
-  ]);
+
+  const { boards, setBoards, loading, error } = useBoards(authUser);
 
   const handleLoginSuccess = () => {
     setShowAuth(false);
   };
 
-  const handleNewBoard = () => {
-    const newBoard: Board = {
-      id: Date.now().toString(),
-      title: `Project Kanban Board ${boards.length + 1}`,
-      columns: [],
-    };
-    setBoards(prev => [...prev, newBoard]);
+  const handleNewBoard = async () => {
+    try {
+      const response = await createBoard({
+        title: `Project Kanban Board ${boards.length + 1}`,
+      });
+      const newBoard = {
+        id: response.data.id.toString(),
+        title: response.data.title,
+        columns: [],
+      };
+      setBoards(prev => [...prev, newBoard]);
+    } catch (error) {
+      console.error('Failed to create board:', error);
+      alert('สร้างบอร์ดใหม่ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    }
   };
 
   const handleInvite = (boardId: string) => {
     alert(`Invite clicked for board ${boardId}`);
   };
 
-  const handleDeleteBoard = (boardId: string) => {
-    setBoards(prev => prev.filter(b => b.id !== boardId));
+  const handleDeleteBoard = async (boardId: string) => {
+    try {
+      await deleteBoard(Number(boardId));
+      setBoards(prev => prev.filter(b => b.id !== boardId));
+    } catch (error) {
+      console.error('Failed to delete board:', error);
+      alert('ลบบอร์ดไม่สำเร็จ กรุณาลองใหม่');
+    }
   };
 
   const handleRenameBoard = (boardId: string) => {
@@ -74,6 +79,14 @@ const KanbanBoardPage: React.FC = () => {
       prev.map(b => (b.id === boardId ? { ...b, columns: newColumns } : b))
     );
   };
+
+  if (loading) {
+    return <div>Loading boards...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading boards: {error}</div>;
+  }
 
   return (
     <div className="kanban-container">

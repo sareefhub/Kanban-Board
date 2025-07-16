@@ -1,35 +1,88 @@
 import { api } from './client';
 import type { Column } from '../components/KanbanColumn/KanbanColumn';
 
-export interface Board {
-  id: number;
+export interface BoardCreate {
   title: string;
 }
 
-export function listBoards() {
-  return api.get<Board[]>('/boards');
+export interface BoardUpdate {
+  title: string;
 }
 
-export function createBoard(data: { title: string }) {
-  return api.post<Board>('/boards', data);
+export interface BoardOut {
+  id: number;
+  title: string;
+  owner_id?: number;
 }
 
-export function fetchColumns(boardId: number) {
-  return api.get<Column[]>(`/boards/${boardId}/columns`);
+export async function listBoards() {
+  try {
+    const response = await api.get<BoardOut[]>('/boards');
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to fetch boards');
+  }
 }
 
-export function createColumn(boardId: number, title: string) {
-  return api.post<Column>(`/boards/${boardId}/columns`, { title });
+export async function createBoard(data: BoardCreate) {
+  try {
+    const response = await api.post<BoardOut>('/boards', data);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to create board');
+  }
 }
 
-export function updateColumn(boardId: number, columnId: number, title: string) {
-  return api.put<Column>(`/boards/${boardId}/columns/${columnId}`, { title });
+export async function updateBoard(boardId: number, data: BoardUpdate) {
+  try {
+    const response = await api.put<BoardOut>(`/boards/${boardId}`, data);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to update board');
+  }
 }
 
-export function deleteColumn(boardId: number, columnId: number) {
-  return api.delete(`/boards/${boardId}/columns/${columnId}`);
+export async function deleteBoard(boardId: number) {
+  try {
+    const response = await api.delete(`/boards/${boardId}`);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to delete board');
+  }
 }
 
-export function inviteMember(boardId: number, data: { email: string }) {
-  return api.post(`/boards/${boardId}/invite`, data);
+export async function fetchColumns(boardId: number) {
+  try {
+    const response = await api.get<Column[]>(`/boards/${boardId}/columns`);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to fetch columns');
+  }
+}
+
+export async function createColumn(boardId: number, title: string) {
+  try {
+    const response = await api.post<Column>(`/boards/${boardId}/columns`, { title });
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to create column');
+  }
+}
+
+export async function updateColumn(boardId: number, columnId: number, title: string) {
+  try {
+    const response = await api.put<Column>(`/boards/${boardId}/columns/${columnId}`, { title });
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to update column');
+  }
+}
+
+export async function deleteColumn(boardId: number, columnId: number) {
+  try {
+    const response = await api.delete(`/boards/${boardId}/columns/${columnId}`);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Failed to delete column');
+  }
 }

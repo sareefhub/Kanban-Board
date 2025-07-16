@@ -1,3 +1,4 @@
+// src/components/KanbanBoard/KanbanBoard.tsx
 import React from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import KanbanColumn, { Column, Task } from '../KanbanColumn/KanbanColumn';
