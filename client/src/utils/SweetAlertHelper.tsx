@@ -14,6 +14,17 @@ export function showLoginSuccess(username: string) {
   });
 }
 
+export function showRegisterSuccess() {
+  return MySwal.fire({
+    icon: 'success',
+    title: 'Registration Successful',
+    text: 'Your account has been created. You can now login.',
+    timer: 2500,
+    timerProgressBar: true,
+    showConfirmButton: false,
+  });
+}
+
 export function confirmLogout(): Promise<boolean> {
   return MySwal.fire({
     title: 'Are you sure?',

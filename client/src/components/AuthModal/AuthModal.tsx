@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './AuthModal.css';
 import { registerUser, loginUser } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
-import { showLoginSuccess } from '../../utils/SweetAlertHelper';
+import { showLoginSuccess, showRegisterSuccess } from '../../utils/SweetAlertHelper';
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -47,6 +47,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }
           email: form.email,
           password: form.password,
         });
+        await showRegisterSuccess();
       }
       setLoading(false);
       onClose();

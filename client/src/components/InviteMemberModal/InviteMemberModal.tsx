@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useInviteMember } from '../../hooks/useInviteMember';
 import './InviteMemberModal.css';
 
@@ -9,7 +10,8 @@ interface InviteMemberModalProps {
 
 const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ boardId, onClose }) => {
   const [input, setInput] = useState('');
-  const { invite, loading } = useInviteMember(boardId, onClose);
+  const { user } = useAuth();
+  const { invite, loading } = useInviteMember(boardId, user?.id ?? 0, onClose);
 
   const handleInvite = async () => {
     await invite(input);

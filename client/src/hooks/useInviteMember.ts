@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { searchUsers, inviteMemberToBoard, User } from '../api/users';
 
-export const useInviteMember = (boardId: string, onClose: () => void) => {
+export const useInviteMember = (
+  boardId: string,
+  currentUserId: number,
+  onClose: () => void
+) => {
   const [loading, setLoading] = useState(false);
 
   const invite = async (input: string) => {
@@ -13,7 +17,12 @@ export const useInviteMember = (boardId: string, onClose: () => void) => {
         setLoading(false);
         return;
       }
-      const user = users[0];
+      const user = users.find(u => u.id !== currentUserId);
+      if (!user) {
+        alert('ไม่พบผู้ใช้ที่ถูกต้อง');
+        setLoading(false);
+        return;
+      }
       await inviteMemberToBoard(boardId, user.id);
       alert(`เชิญ ${user.username} สำเร็จ`);
       onClose();
