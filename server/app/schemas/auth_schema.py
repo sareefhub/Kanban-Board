@@ -7,7 +7,11 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: int | None = None
 
+class RegisterRequest(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
 class LoginRequest(BaseModel):
-    username: str | None = None
-    email: EmailStr | None = None
+    username: str
     password: str
