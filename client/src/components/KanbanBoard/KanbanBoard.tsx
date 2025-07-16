@@ -146,7 +146,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
                 >
                   <i className="fas fa-user-plus"></i>
                 </button>
-                                <button
+                <button
                   onClick={() => {
                     setEditingBoardId(board.id);
                     setEditedTitle(board.title);
