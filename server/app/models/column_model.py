@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .base import Base
+from app.database import Base
 
 class BoardColumn(Base):
     __tablename__ = "board_columns"

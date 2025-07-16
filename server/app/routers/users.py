@@ -9,11 +9,10 @@ from app.schemas.user_schema import UserCreate, UserOut
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-# ✅ CREATE
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == user_in.email).first():
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Email is already registered.")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Email already registered.")
 
     user = User(
         username=user_in.username,
@@ -30,12 +29,10 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
 
     return user
 
-# ✅ READ (All Users)
 @router.get("/", response_model=list[UserOut])
 def get_all_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
-# ✅ READ (Single User)
 @router.get("/{user_id}", response_model=UserOut)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
@@ -43,7 +40,6 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found.")
     return user
 
-# ✅ UPDATE (User)
 @router.put("/{user_id}", response_model=UserOut)
 def update_user(user_id: int, user_in: UserCreate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
@@ -63,7 +59,6 @@ def update_user(user_id: int, user_in: UserCreate, db: Session = Depends(get_db)
 
     return user
 
-# ✅ DELETE (User)
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()

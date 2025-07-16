@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey, Enum, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-from .base import Base
+from app.database import Base
 
 class MemberRole(enum.Enum):
     owner = "owner"

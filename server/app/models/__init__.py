@@ -1,4 +1,4 @@
-from .base import Base
+from app.database import Base
 from .user_model import User
 from .board_model import Board
 from .board_member_model import BoardMember
