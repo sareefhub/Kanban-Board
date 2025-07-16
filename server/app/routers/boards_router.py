@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, select
 from app.database import get_db
-from app.models import Board
+from app.models import Board, BoardMember
 from app.schemas.board_schema import BoardCreate, BoardOut, BoardUpdate
 from app.core.auth import get_current_user
 
@@ -24,7 +25,14 @@ def list_boards(
     current=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return db.query(Board).filter(Board.owner_id == current.id).all()
+    subquery = select(BoardMember.board_id).where(BoardMember.user_id == current.id)
+    boards = db.query(Board).filter(
+        or_(
+            Board.owner_id == current.id,
+            Board.id.in_(subquery)
+        )
+    ).all()
+    return boards
 
 @router.put("/{board_id}", response_model=BoardOut)
 def update_board(
