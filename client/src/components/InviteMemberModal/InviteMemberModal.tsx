@@ -1,28 +1,19 @@
-// src/components/InviteMemberModal/InviteMemberModal.tsx
 import React, { useState } from 'react';
+import { useInviteMember } from '../../hooks/useInviteMember';
+import './InviteMemberModal.css';
 
 interface InviteMemberModalProps {
   boardId: string;
   onClose: () => void;
-  // เพิ่ม props อื่นๆได้ถ้าต้องการ
 }
 
 const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ boardId, onClose }) => {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState('');
+  const { invite, loading } = useInviteMember(boardId, onClose);
 
   const handleInvite = async () => {
-    setLoading(true);
-    try {
-      // เรียก API เชิญสมาชิก (ปรับเป็น API จริงของคุณ)
-      alert(`Invite ${email} to board ${boardId}`);
-      setEmail('');
-      onClose();
-    } catch (error) {
-      alert('เชิญสมาชิกไม่สำเร็จ');
-    } finally {
-      setLoading(false);
-    }
+    await invite(input);
+    setInput('');
   };
 
   return (
@@ -30,13 +21,13 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({ boardId, onClose 
       <div className="modal-content">
         <h3>Invite Member to Board</h3>
         <input
-          type="email"
-          placeholder="Enter member's email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
+          type="text"
+          placeholder="Enter member's email or username"
+          value={input}
+          onChange={e => setInput(e.target.value)}
           disabled={loading}
         />
-        <button onClick={handleInvite} disabled={loading || !email}>
+        <button onClick={handleInvite} disabled={loading || !input}>
           Invite
         </button>
         <button onClick={onClose} disabled={loading}>
