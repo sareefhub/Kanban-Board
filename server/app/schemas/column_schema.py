@@ -1,24 +1,19 @@
 from pydantic import BaseModel
-from datetime import datetime
-from typing import Optional
 
-
-class ColumnCreate(BaseModel):
+class ColumnBase(BaseModel):
     title: str
-    board_id: int
-    position: Optional[int] = 0
+    position: int | None = 0
 
+class ColumnCreate(ColumnBase):
+    board_id: int
 
 class ColumnUpdate(BaseModel):
-    title: Optional[str] = None
-    position: Optional[int] = None
-
-
-class ColumnOut(BaseModel):
-    id: int
     title: str
-    board_id: int
-    position: int
-    created_at: datetime
+    position: int | None = 0
 
-    model_config = {"from_attributes": True}
+class ColumnOut(ColumnBase):
+    id: int
+    board_id: int
+
+    class Config:
+        from_attributes = True

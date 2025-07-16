@@ -1,12 +1,17 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-class NotificationOut(BaseModel):
+class NotificationBase(BaseModel):
+    message: str
+
+class NotificationCreate(NotificationBase):
+    user_id: int
+
+class NotificationOut(NotificationBase):
     id: int
     user_id: int
-    task_id: int
-    type: str
     is_read: bool
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    class Config:
+        from_attributes = True

@@ -1,20 +1,17 @@
 from pydantic import BaseModel
-from datetime import datetime
-from typing import Optional
+from typing import List
 
-class TaskCreate(BaseModel):
+class TaskBase(BaseModel):
     title: str
-    description: Optional[str]
-    column_id: int
-    position: Optional[int] = 0
+    description: str | None = None
+    position: int | None = 0
 
-class TaskOut(BaseModel):
+class TaskCreate(TaskBase):
+    column_id: int
+
+class TaskOut(TaskBase):
     id: int
-    title: str
-    description: Optional[str]
     column_id: int
-    position: int
-    created_at: datetime
-    updated_at: datetime
 
-    model_config = {"from_attributes": True}
+    class Config:
+        from_attributes = True

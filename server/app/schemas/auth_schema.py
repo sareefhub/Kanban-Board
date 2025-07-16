@@ -1,12 +1,13 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, EmailStr
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 class TokenData(BaseModel):
-    sub: str
-    exp: Optional[int]
+    user_id: int | None = None
 
-    model_config = {"from_attributes": True}
+class LoginRequest(BaseModel):
+    username: str | None = None
+    email: EmailStr | None = None
+    password: str

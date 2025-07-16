@@ -1,10 +1,14 @@
 from pydantic import BaseModel
 
-class TagCreate(BaseModel):
+class TagBase(BaseModel):
     name: str
 
-class TagOut(BaseModel):
+class TagCreate(TagBase):
+    task_id: int
+
+class TagOut(TagBase):
     id: int
-    name: str
+    task_id: int
 
-    model_config = {"from_attributes": True}
+    class Config:
+        from_attributes = True
