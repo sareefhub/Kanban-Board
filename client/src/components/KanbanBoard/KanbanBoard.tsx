@@ -8,9 +8,18 @@ interface Props {
   setColumns: React.Dispatch<React.SetStateAction<Column[]>>;
   boardTitle: string;
   onInvite: () => void;
+  onDeleteBoard: () => void;
+  onRenameBoard: () => void;
 }
 
-const KanbanBoard: React.FC<Props> = ({ columns, setColumns, boardTitle, onInvite }) => {
+const KanbanBoard: React.FC<Props> = ({
+  columns,
+  setColumns,
+  boardTitle,
+  onInvite,
+  onDeleteBoard,
+  onRenameBoard,
+}) => {
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -47,9 +56,29 @@ const KanbanBoard: React.FC<Props> = ({ columns, setColumns, boardTitle, onInvit
     <div className="kanban-board-container">
       <div className="board-header">
         <h2>{boardTitle}</h2>
-        <button className="invite-btn" onClick={onInvite} title="Invite member">
-          <i className="fas fa-user-plus"></i>
-        </button>
+        <div>
+          <button
+            className="invite-btn"
+            onClick={onInvite}
+            title="Invite member"
+          >
+            <i className="fas fa-user-plus"></i>
+          </button>
+          <button
+            className="delete-board-btn"
+            onClick={onDeleteBoard}
+            title="Delete board"
+          >
+            <i className="fas fa-trash"></i>
+          </button>
+          <button
+            className="rename-board-btn"
+            onClick={onRenameBoard}
+            title="Rename board"
+          >
+            <i className="fas fa-edit"></i>
+          </button>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>

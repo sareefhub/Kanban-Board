@@ -18,6 +18,14 @@ const KanbanBoardPage: React.FC = () => {
     alert('Invite clicked');
   };
 
+  const handleDeleteBoard = () => {
+    alert('Delete board clicked');
+  };
+
+  const handleRenameBoard = () => {
+    alert('Rename board clicked');
+  };
+
   return (
     <div className="kanban-container">
       <Navbar
@@ -44,6 +52,8 @@ const KanbanBoardPage: React.FC = () => {
           columns={columns}
           setColumns={setColumns}
           onInvite={handleInvite}
+          onDeleteBoard={handleDeleteBoard}
+          onRenameBoard={handleRenameBoard}
         />
       </main>
     </div>
