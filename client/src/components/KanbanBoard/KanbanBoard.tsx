@@ -6,9 +6,11 @@ import './KanbanBoard.css';
 interface Props {
   columns: Column[];
   setColumns: React.Dispatch<React.SetStateAction<Column[]>>;
+  boardTitle: string;
+  onInvite: () => void;
 }
 
-const KanbanBoard: React.FC<Props> = ({ columns, setColumns }) => {
+const KanbanBoard: React.FC<Props> = ({ columns, setColumns, boardTitle, onInvite }) => {
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -42,24 +44,33 @@ const KanbanBoard: React.FC<Props> = ({ columns, setColumns }) => {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <div className="board">
-        {columns.map(col => (
-          <Droppable key={col.id} droppableId={col.id} type="TASK">
-            {provided => (
-              <div
-                className="board-column-wrapper"
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-              >
-                <KanbanColumn column={{ ...col, addTask }} />
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        ))}
+    <div className="kanban-board-container">
+      <div className="board-header">
+        <h2>{boardTitle}</h2>
+        <button className="invite-btn" onClick={onInvite} title="Invite member">
+          <i className="fas fa-user-plus"></i>
+        </button>
       </div>
-    </DragDropContext>
+
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="board">
+          {columns.map(col => (
+            <Droppable key={col.id} droppableId={col.id} type="TASK">
+              {provided => (
+                <div
+                  className="board-column-wrapper"
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                >
+                  <KanbanColumn column={{ ...col, addTask }} />
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          ))}
+        </div>
+      </DragDropContext>
+    </div>
   );
 };
 

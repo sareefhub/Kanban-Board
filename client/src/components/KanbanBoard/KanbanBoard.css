@@ -1,12 +1,51 @@
+.kanban-board-container {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+}
+
+.board-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.invite-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #3b82f6;
+  font-size: 1.3rem;
+  transition: color 0.2s ease;
+}
+
+.invite-btn:hover {
+  color: #2563eb;
+}
+
 .board {
   display: flex;
   gap: 1rem;
   align-items: flex-start;
-  overflow-x: auto;
-  background-color: #f5f5f5;
-  border-radius: 0.5rem;
+  padding-bottom: 1rem;
 }
 
 .board-column-wrapper {
-  flex: 1 1 18rem;
+  flex: 0 0 18rem;
+  background-color: #f9f9f9;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  max-height: 80vh;
 }

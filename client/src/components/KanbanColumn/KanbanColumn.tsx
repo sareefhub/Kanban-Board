@@ -62,9 +62,6 @@ const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
           <button className="menu-btn" onClick={() => setMenuOpen(o => !o)}>⋯</button>
           {menuOpen && (
             <ul className="menu-list">
-              <li className="menu-item invite" onClick={() => alert('Invite Members')}>
-                Invite Members
-              </li>
               <li className="menu-item edit" onClick={() => alert('Edit Column')}>
                 Edit Column
               </li>
