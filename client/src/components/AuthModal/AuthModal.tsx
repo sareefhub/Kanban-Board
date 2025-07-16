@@ -7,9 +7,10 @@ import { showLoginSuccess } from '../../utils/SweetAlertHelper';
 export interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLoginSuccess: (username: string) => void;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
   const { login } = useAuth();
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [form, setForm] = useState({
@@ -39,6 +40,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         });
         login(data.access_token, data.user);
         await showLoginSuccess(data.user.username);
+        onLoginSuccess(data.user.username);
       } else {
         const data = await registerUser({
           username: form.username,

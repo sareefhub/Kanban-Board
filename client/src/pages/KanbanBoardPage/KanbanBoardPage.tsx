@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar/Navbar';
 import AuthModal from '../../components/AuthModal/AuthModal';
 import KanbanBoard from '../../components/KanbanBoard/KanbanBoard';
 import { Column } from '../../components/KanbanColumn/KanbanColumn';
 import { initialColumns as mockColumns } from '../../data/mockKanbanData';
+import { useAuth } from '../../context/AuthContext';
 import './KanbanBoardPage.css';
 
 interface Board {
@@ -13,6 +14,7 @@ interface Board {
 }
 
 const KanbanBoardPage: React.FC = () => {
+  const { user: authUser, logout } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [boards, setBoards] = useState<Board[]>([
     {
@@ -21,6 +23,10 @@ const KanbanBoardPage: React.FC = () => {
       columns: mockColumns,
     },
   ]);
+
+  const handleLoginSuccess = () => {
+    setShowAuth(false);
+  };
 
   const handleNewBoard = () => {
     const newBoard: Board = {
@@ -74,11 +80,19 @@ const KanbanBoardPage: React.FC = () => {
       <Navbar
         boardTitle="Kanban Boards"
         statusLabel="Active"
+        username={authUser?.username ?? null}
         onNotifyClick={() => console.log('Open notifications')}
         onSignIn={() => setShowAuth(true)}
+        onLogout={logout}
       />
 
-      {showAuth && <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />}
+      {showAuth && (
+        <AuthModal
+          isOpen={showAuth}
+          onClose={() => setShowAuth(false)}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
 
       <main className="board-content">
         <div className="board-header">
