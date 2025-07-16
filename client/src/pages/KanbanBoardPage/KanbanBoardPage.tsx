@@ -26,6 +26,15 @@ const KanbanBoardPage: React.FC = () => {
     alert('Rename board clicked');
   };
 
+  const handleAddColumn = () => {
+    const newColumn: Column = {
+      id: Date.now().toString(),
+      title: 'New Column',
+      tasks: [],
+    };
+    setColumns([...columns, newColumn]);
+  };
+
   return (
     <div className="kanban-container">
       <Navbar
@@ -54,6 +63,7 @@ const KanbanBoardPage: React.FC = () => {
           onInvite={handleInvite}
           onDeleteBoard={handleDeleteBoard}
           onRenameBoard={handleRenameBoard}
+          onAddColumn={handleAddColumn}
         />
       </main>
     </div>

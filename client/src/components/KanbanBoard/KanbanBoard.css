@@ -52,6 +52,7 @@
   gap: 1rem;
   align-items: flex-start;
   padding-bottom: 1rem;
+  overflow-x: auto;
 }
 
 .board-column-wrapper {
@@ -61,4 +62,24 @@
   padding: 0.5rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-column-btn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px dashed #3b82f6;
+  background: transparent;
+  color: #3b82f6;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  align-self: center;
+}
+
+.add-column-btn:hover {
+  background-color: #3b82f6;
+  color: white;
 }

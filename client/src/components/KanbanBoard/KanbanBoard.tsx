@@ -10,6 +10,7 @@ interface Props {
   onInvite: () => void;
   onDeleteBoard: () => void;
   onRenameBoard: () => void;
+  onAddColumn: () => void;
 }
 
 const KanbanBoard: React.FC<Props> = ({
@@ -19,6 +20,7 @@ const KanbanBoard: React.FC<Props> = ({
   onInvite,
   onDeleteBoard,
   onRenameBoard,
+  onAddColumn,
 }) => {
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
@@ -97,6 +99,12 @@ const KanbanBoard: React.FC<Props> = ({
               )}
             </Droppable>
           ))}
+
+          <div className="add-column-wrapper">
+            <button className="add-column-btn" onClick={onAddColumn}>
+              + Add Column
+            </button>
+          </div>
         </div>
       </DragDropContext>
     </div>
