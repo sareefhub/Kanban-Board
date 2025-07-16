@@ -1,17 +1,17 @@
 from pydantic import BaseModel
 
-class ColumnBase(BaseModel):
+class BoardColumnBase(BaseModel):
     title: str
     position: int | None = 0
 
-class ColumnCreate(ColumnBase):
+class BoardColumnCreate(BoardColumnBase):
     board_id: int
 
-class ColumnUpdate(BaseModel):
+class BoardColumnUpdate(BaseModel):
     title: str
     position: int | None = 0
 
-class ColumnOut(ColumnBase):
+class BoardColumnOut(BoardColumnBase):
     id: int
     board_id: int
 
