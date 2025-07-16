@@ -17,7 +17,7 @@ export interface Column {
   id: string;
   title: string;
   tasks: Task[];
-  addTask?: (colId: string, task: Task) => void;
+  addTask?: (task: Task) => void;
 }
 
 const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
@@ -46,7 +46,7 @@ const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       priority: 'low',
     };
-    column.addTask?.(column.id, task);
+    column.addTask?.(task);
     setEditing(false);
     setTitle('');
     setDesc('');

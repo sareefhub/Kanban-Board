@@ -2,27 +2,18 @@ import React, { useState } from 'react';
 import Navbar from '../../components/Navbar/Navbar';
 import AuthModal from '../../components/AuthModal/AuthModal';
 import KanbanBoard from '../../components/KanbanBoard/KanbanBoard';
-import { Column } from '../../components/KanbanColumn/KanbanColumn';
 import { useAuth } from '../../context/AuthContext';
-import { createBoard, deleteBoard } from '../../api/boards';
+import { createBoard } from '../../api/boards';
 import { useBoards } from '../../hooks/useBoards';
 import './KanbanBoardPage.css';
-
-interface Board {
-  id: string;
-  title: string;
-  columns: Column[];
-}
 
 const KanbanBoardPage: React.FC = () => {
   const { user: authUser, logout } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
 
-  const { boards, setBoards, loading, error, renameBoard } = useBoards(authUser);
+  const { boards, setBoards, loading, error } = useBoards(authUser);
 
-  const handleLoginSuccess = () => {
-    setShowAuth(false);
-  };
+  const handleLoginSuccess = () => setShowAuth(false);
 
   const handleNewBoard = async () => {
     try {
@@ -35,66 +26,13 @@ const KanbanBoardPage: React.FC = () => {
         columns: [],
       };
       setBoards(prev => [...prev, newBoard]);
-    } catch (error) {
-      console.error('Failed to create board:', error);
+    } catch {
       alert('สร้างบอร์ดใหม่ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
     }
   };
 
-  const handleInvite = (boardId: string) => {
-    alert(`Invite clicked for board ${boardId}`);
-  };
-
-  const handleDeleteBoard = async (boardId: string) => {
-    try {
-      await deleteBoard(Number(boardId));
-      setBoards(prev => prev.filter(b => b.id !== boardId));
-    } catch (error) {
-      console.error('Failed to delete board:', error);
-      alert('ลบบอร์ดไม่สำเร็จ กรุณาลองใหม่');
-    }
-  };
-
-  const handleRenameBoard = async (boardId: string) => {
-    const newTitle = prompt('Enter new board name:');
-    if (!newTitle) return;
-    try {
-      await renameBoard(Number(boardId), newTitle);
-    } catch (error) {
-      console.error('Failed to rename board:', error);
-      alert('แก้ไขชื่อบอร์ดไม่สำเร็จ กรุณาลองใหม่');
-    }
-  };
-
-  const handleAddColumn = (boardId: string) => {
-    setBoards(prev =>
-      prev.map(b => {
-        if (b.id === boardId) {
-          const newColumn: Column = {
-            id: Date.now().toString(),
-            title: 'New Column',
-            tasks: [],
-          };
-          return { ...b, columns: [...b.columns, newColumn] };
-        }
-        return b;
-      })
-    );
-  };
-
-  const setBoardColumns = (boardId: string, newColumns: Column[]) => {
-    setBoards(prev =>
-      prev.map(b => (b.id === boardId ? { ...b, columns: newColumns } : b))
-    );
-  };
-
-  if (loading) {
-    return <div>Loading boards...</div>;
-  }
-
-  if (error) {
-    return <div>Error loading boards: {error}</div>;
-  }
+  if (loading) return <div>Loading boards...</div>;
+  if (error) return <div>Error loading boards: {error}</div>;
 
   return (
     <div className="kanban-container">
@@ -122,20 +60,8 @@ const KanbanBoardPage: React.FC = () => {
             + New Board
           </button>
         </div>
-        <p className="board-subtitle">Manage your tasks and track progress</p>
 
-        {boards.map(board => (
-          <KanbanBoard
-            key={board.id}
-            boardTitle={board.title}
-            columns={board.columns}
-            setColumns={newCols => setBoardColumns(board.id, newCols as Column[])}
-            onInvite={() => handleInvite(board.id)}
-            onDeleteBoard={() => handleDeleteBoard(board.id)}
-            onRenameBoard={() => handleRenameBoard(board.id)}
-            onAddColumn={() => handleAddColumn(board.id)}
-          />
-        ))}
+        <KanbanBoard boards={boards} setBoards={setBoards} />
       </main>
     </div>
   );

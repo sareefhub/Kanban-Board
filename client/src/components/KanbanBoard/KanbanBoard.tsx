@@ -1,113 +1,211 @@
-// src/components/KanbanBoard/KanbanBoard.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import KanbanColumn, { Column, Task } from '../KanbanColumn/KanbanColumn';
+import { updateBoard, deleteBoard } from '../../api/boards';
+import InviteMemberModal from '../InviteMemberModal/InviteMemberModal';
 import './KanbanBoard.css';
 
-interface Props {
+interface Board {
+  id: string;
+  title: string;
   columns: Column[];
-  setColumns: React.Dispatch<React.SetStateAction<Column[]>>;
-  boardTitle: string;
-  onInvite: () => void;
-  onDeleteBoard: () => void;
-  onRenameBoard: () => void;
-  onAddColumn: () => void;
 }
 
-const KanbanBoard: React.FC<Props> = ({
-  columns,
-  setColumns,
-  boardTitle,
-  onInvite,
-  onDeleteBoard,
-  onRenameBoard,
-  onAddColumn,
-}) => {
-  const onDragEnd = (result: DropResult) => {
+interface Props {
+  boards: Board[];
+  setBoards: React.Dispatch<React.SetStateAction<Board[]>>;
+}
+
+const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
+  const [loading, setLoading] = useState(false);
+  const [inviteOpenBoardId, setInviteOpenBoardId] = useState<string | null>(null);
+  const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
+  const [editedTitle, setEditedTitle] = useState<string>('');
+
+  const onDragEnd = (boardId: string, result: DropResult) => {
     const { source, destination } = result;
     if (!destination) return;
 
-    const srcIdx = columns.findIndex(c => c.id === source.droppableId);
-    const destIdx = columns.findIndex(c => c.id === destination.droppableId);
-    const srcTasks = Array.from(columns[srcIdx].tasks);
-    const [moved] = srcTasks.splice(source.index, 1);
+    setBoards(prevBoards =>
+      prevBoards.map(board => {
+        if (board.id !== boardId) return board;
 
-    if (srcIdx === destIdx) {
-      srcTasks.splice(destination.index, 0, moved);
-      const updated = [...columns];
-      updated[srcIdx].tasks = srcTasks;
-      setColumns(updated);
-    } else {
-      const destTasks = Array.from(columns[destIdx].tasks);
-      destTasks.splice(destination.index, 0, moved);
-      const updated = [...columns];
-      updated[srcIdx].tasks = srcTasks;
-      updated[destIdx].tasks = destTasks;
-      setColumns(updated);
+        const srcIdx = board.columns.findIndex(c => c.id === source.droppableId);
+        const destIdx = board.columns.findIndex(c => c.id === destination.droppableId);
+        const srcTasks = Array.from(board.columns[srcIdx].tasks);
+        const [moved] = srcTasks.splice(source.index, 1);
+
+        if (srcIdx === destIdx) {
+          srcTasks.splice(destination.index, 0, moved);
+          const updatedColumns = [...board.columns];
+          updatedColumns[srcIdx].tasks = srcTasks;
+          return { ...board, columns: updatedColumns };
+        } else {
+          const destTasks = Array.from(board.columns[destIdx].tasks);
+          destTasks.splice(destination.index, 0, moved);
+          const updatedColumns = [...board.columns];
+          updatedColumns[srcIdx].tasks = srcTasks;
+          updatedColumns[destIdx].tasks = destTasks;
+          return { ...board, columns: updatedColumns };
+        }
+      })
+    );
+  };
+
+  const saveTitle = async (boardId: string) => {
+    if (!editedTitle.trim()) return alert('กรุณาใส่ชื่อบอร์ด');
+    setLoading(true);
+    try {
+      const res = await updateBoard(Number(boardId), { title: editedTitle });
+      setBoards(prev =>
+        prev.map(b => (b.id === boardId ? { ...b, title: res.data.title } : b))
+      );
+      setEditingBoardId(null);
+    } catch {
+      alert('แก้ไขชื่อบอร์ดไม่สำเร็จ');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const addTask = (colId: string, task: Task) => {
-    setColumns(cols =>
-      cols.map(c =>
-        c.id === colId ? { ...c, tasks: [...c.tasks, task] } : c
+  const handleDeleteBoard = async (boardId: string) => {
+    if (!window.confirm('ต้องการลบบอร์ดนี้ใช่ไหม?')) return;
+    setLoading(true);
+    try {
+      await deleteBoard(Number(boardId));
+      setBoards(prev => prev.filter(b => b.id !== boardId));
+    } catch {
+      alert('ลบบอร์ดไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openInviteModal = (boardId: string) => setInviteOpenBoardId(boardId);
+  const closeInviteModal = () => setInviteOpenBoardId(null);
+
+  const addTask = (boardId: string, colId: string, task: Task) => {
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === boardId
+          ? {
+              ...board,
+              columns: board.columns.map(col =>
+                col.id === colId ? { ...col, tasks: [...col.tasks, task] } : col
+              ),
+            }
+          : board
+      )
+    );
+  };
+
+  const handleAddColumn = (boardId: string) => {
+    setBoards(prev =>
+      prev.map(board =>
+        board.id === boardId
+          ? {
+              ...board,
+              columns: [
+                ...board.columns,
+                { id: Date.now().toString(), title: 'New Column', tasks: [] },
+              ],
+            }
+          : board
       )
     );
   };
 
   return (
-    <div className="kanban-board-container">
-      <div className="board-header">
-        <h2>{boardTitle}</h2>
-        <div>
-          <button
-            className="invite-btn"
-            onClick={onInvite}
-            title="Invite member"
-          >
-            <i className="fas fa-user-plus"></i>
-          </button>
-          <button
-            className="delete-board-btn"
-            onClick={onDeleteBoard}
-            title="Delete board"
-          >
-            <i className="fas fa-trash"></i>
-          </button>
-          <button
-            className="rename-board-btn"
-            onClick={onRenameBoard}
-            title="Rename board"
-          >
-            <i className="fas fa-edit"></i>
-          </button>
-        </div>
-      </div>
-
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="board">
-          {columns.map(col => (
-            <Droppable key={col.id} droppableId={col.id} type="TASK">
-              {provided => (
-                <div
-                  className="board-column-wrapper"
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
+    <div>
+      {boards.map(board => (
+        <div key={board.id} className="kanban-board-container">
+          <div className="board-header">
+            {editingBoardId === board.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editedTitle}
+                  onChange={e => setEditedTitle(e.target.value)}
+                  disabled={loading}
+                  autoFocus
+                />
+                <button onClick={() => saveTitle(board.id)} disabled={loading}>
+                  บันทึก
+                </button>
+                <button onClick={() => setEditingBoardId(null)} disabled={loading}>
+                  ยกเลิก
+                </button>
+              </>
+            ) : (
+              <>
+                <h2>{board.title}</h2>
+                <button
+                  onClick={() => openInviteModal(board.id)}
+                  title="Invite member"
+                  disabled={loading}
                 >
-                  <KanbanColumn column={{ ...col, addTask }} />
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          ))}
-
-          <div className="add-column-wrapper">
-            <button className="add-column-btn" onClick={onAddColumn}>
-              + Add Column
-            </button>
+                  <i className="fas fa-user-plus"></i>
+                </button>
+                                <button
+                  onClick={() => {
+                    setEditingBoardId(board.id);
+                    setEditedTitle(board.title);
+                  }}
+                  title="Rename board"
+                  disabled={loading}
+                  style={{ marginLeft: 'auto', marginRight: '0.5rem' }}
+                >
+                  <i className="fas fa-edit"></i>
+                </button>
+                <button
+                  onClick={() => handleDeleteBoard(board.id)}
+                  title="Delete board"
+                  disabled={loading}
+                >
+                  <i className="fas fa-trash"></i>
+                </button>
+              </>
+            )}
           </div>
+
+          <DragDropContext onDragEnd={result => onDragEnd(board.id, result)}>
+            <div className="board">
+              {board.columns.map(col => (
+                <Droppable key={col.id} droppableId={col.id} type="TASK">
+                  {provided => (
+                    <div
+                      className="board-column-wrapper"
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                      <KanbanColumn
+                        column={{
+                          ...col,
+                          addTask: (task: Task) => addTask(board.id, col.id, task),
+                        }}
+                      />
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              ))}
+              <div className="add-column-wrapper">
+                <button
+                  className="add-column-btn"
+                  onClick={() => handleAddColumn(board.id)}
+                  disabled={loading}
+                >
+                  + Add Column
+                </button>
+              </div>
+            </div>
+          </DragDropContext>
+
+          {inviteOpenBoardId === board.id && (
+            <InviteMemberModal boardId={board.id} onClose={closeInviteModal} />
+          )}
         </div>
-      </DragDropContext>
+      ))}
     </div>
   );
 };
