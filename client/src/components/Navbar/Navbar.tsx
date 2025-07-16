@@ -4,10 +4,11 @@ import './Navbar.css';
 export interface NavbarProps {
   boardTitle: string;
   statusLabel: string;
-  username?: string;
+  username?: string | null;
   notifyCount?: number;
   onNotifyClick?: () => void;
   onSignIn?: () => void;
+  onLogout?: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -17,6 +18,7 @@ const Navbar: React.FC<NavbarProps> = ({
   notifyCount = 0,
   onNotifyClick,
   onSignIn,
+  onLogout,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -57,8 +59,12 @@ const Navbar: React.FC<NavbarProps> = ({
           </button>
           {menuOpen && (
             <ul className="user-dropdown">
-              <li className="username">{username || 'Guest'}</li>
-              <li onClick={onSignIn}>Sign In</li>
+              <li className="username">{username ?? 'Guest'}</li>
+              {username ? (
+                <li onClick={onLogout}>Logout</li>
+              ) : (
+                <li onClick={onSignIn}>Sign In</li>
+              )}
             </ul>
           )}
         </div>

@@ -7,9 +7,8 @@ const NotFound: React.FC = () => <h2>404: Page not found</h2>;
 
 const AppRoutes: React.FC = () => (
   <Routes>
+    <Route path="/" element={<KanbanBoardPage />} />
     <Route path="/hello" element={<Hello />} />
-    <Route path="/kanban" element={<KanbanBoardPage />} />
-    <Route path="*" element={<NotFound />} />
   </Routes>
 );
 

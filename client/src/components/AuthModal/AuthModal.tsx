@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './AuthModal.css';
+import { registerUser, loginUser } from '../../api/auth';
+import { useAuth } from '../../context/AuthContext';
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -7,13 +9,15 @@ export interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+  const { login } = useAuth();
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [form, setForm] = useState({
-    fullName: '',
+    username: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -21,14 +25,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (tab === 'login') {
-      // TODO: call login API
-      console.log('Logging in with', form);
-    } else {
-      // TODO: call register API
-      console.log('Registering with', form);
+    setError(null);
+    setLoading(true);
+
+    try {
+      if (tab === 'login') {
+        const data = await loginUser({
+          username: form.username,
+          password: form.password,
+        });
+        login(data.access_token, data.user);
+      } else {
+        const data = await registerUser({
+          username: form.username,
+          email: form.email,
+          password: form.password,
+        });
+      }
+      setLoading(false);
+      onClose();
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.message || 'Something went wrong');
     }
   };
 
@@ -55,29 +75,33 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              placeholder="Enter your username"
+              required
+              disabled={loading}
+            />
+          </div>
+
           {tab === 'register' && (
             <div className="form-group">
-              <label>Full Name</label>
+              <label>Email</label>
               <input
-                name="fullName"
-                value={form.fullName}
+                name="email"
+                type="email"
+                value={form.email}
                 onChange={handleChange}
-                placeholder="Enter your full name"
+                placeholder="Enter your email"
                 required
+                disabled={loading}
               />
             </div>
           )}
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+
           <div className="form-group">
             <label>{tab === 'login' ? 'Password' : 'Create Password'}</label>
             <input
@@ -87,23 +111,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               onChange={handleChange}
               placeholder={tab === 'login' ? 'Enter your password' : 'Create a password'}
               required
+              disabled={loading}
             />
           </div>
-          {tab === 'register' && (
-            <div className="form-group">
-              <label>Confirm Password</label>
-              <input
-                name="confirmPassword"
-                type="password"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm your password"
-                required
-              />
-            </div>
-          )}
-          <button type="submit" className="submit-btn">
-            {tab === 'login' ? 'Sign In' : 'Create Account'}
+
+          {error && <div className="error-message">{error}</div>}
+
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? 'Please wait...' : (tab === 'login' ? 'Sign In' : 'Create Account')}
           </button>
         </form>
       </div>
