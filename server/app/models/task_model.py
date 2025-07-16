@@ -11,12 +11,7 @@ class Task(Base):
     position    = Column(Integer, default=0)
     column_id   = Column(Integer, ForeignKey("columns.id", ondelete="CASCADE"))
 
-    # Relationship กับ BoardColumn
     column = relationship("BoardColumn", back_populates="tasks")
-
-    # Relationship กับ TaskTag / Tag
-    tags      = relationship("TaskTag", back_populates="task", cascade="all, delete-orphan")
+    tags = relationship("TaskTag", back_populates="task", cascade="all, delete-orphan")
     tag_items = relationship("Tag", secondary="task_tags", back_populates="tasks")
-
-    # Relationship กับ TaskAssignee
     assignees = relationship("TaskAssignee", back_populates="task", cascade="all, delete-orphan")
