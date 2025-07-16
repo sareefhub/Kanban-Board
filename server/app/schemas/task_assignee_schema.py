@@ -4,7 +4,7 @@ class TaskAssigneeCreate(BaseModel):
     user_id: int
 
     class Config:
-        orm_mode = True
+      from_attributes = True
 
 class TaskAssigneeOut(TaskAssigneeCreate):
     id: int
