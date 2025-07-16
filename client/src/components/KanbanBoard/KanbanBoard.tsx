@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import KanbanColumn, { Column, Task } from '../KanbanColumn/KanbanColumn';
 import { updateBoard, deleteBoard } from '../../api/boards';
+import { createColumn, ColumnOut } from '../../api/columns';
 import InviteMemberModal from '../InviteMemberModal/InviteMemberModal';
 import './KanbanBoard.css';
 
@@ -20,36 +21,37 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
   const [loading, setLoading] = useState(false);
   const [inviteOpenBoardId, setInviteOpenBoardId] = useState<string | null>(null);
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
-  const [editedTitle, setEditedTitle] = useState<string>('');
+  const [editedTitle, setEditedTitle] = useState('');
 
-  const onDragEnd = (boardId: string, result: DropResult) => {
-    const { source, destination } = result;
+  const updateBoardsColumns = (boardId: string, updater: (board: Board) => Board) => {
+    setBoards(prev =>
+      prev.map(board => (board.id === boardId ? updater(board) : board))
+    );
+  };
+
+  const onDragEnd = (boardId: string, { source, destination }: DropResult) => {
     if (!destination) return;
 
-    setBoards(prevBoards =>
-      prevBoards.map(board => {
-        if (board.id !== boardId) return board;
+    updateBoardsColumns(boardId, board => {
+      const srcIdx = board.columns.findIndex(c => c.id === source.droppableId);
+      const destIdx = board.columns.findIndex(c => c.id === destination.droppableId);
+      const srcTasks = [...board.columns[srcIdx].tasks];
+      const [moved] = srcTasks.splice(source.index, 1);
 
-        const srcIdx = board.columns.findIndex(c => c.id === source.droppableId);
-        const destIdx = board.columns.findIndex(c => c.id === destination.droppableId);
-        const srcTasks = Array.from(board.columns[srcIdx].tasks);
-        const [moved] = srcTasks.splice(source.index, 1);
-
-        if (srcIdx === destIdx) {
-          srcTasks.splice(destination.index, 0, moved);
-          const updatedColumns = [...board.columns];
-          updatedColumns[srcIdx].tasks = srcTasks;
-          return { ...board, columns: updatedColumns };
-        } else {
-          const destTasks = Array.from(board.columns[destIdx].tasks);
-          destTasks.splice(destination.index, 0, moved);
-          const updatedColumns = [...board.columns];
-          updatedColumns[srcIdx].tasks = srcTasks;
-          updatedColumns[destIdx].tasks = destTasks;
-          return { ...board, columns: updatedColumns };
-        }
-      })
-    );
+      if (srcIdx === destIdx) {
+        srcTasks.splice(destination.index, 0, moved);
+        const newColumns = [...board.columns];
+        newColumns[srcIdx].tasks = srcTasks;
+        return { ...board, columns: newColumns };
+      } else {
+        const destTasks = [...board.columns[destIdx].tasks];
+        destTasks.splice(destination.index, 0, moved);
+        const newColumns = [...board.columns];
+        newColumns[srcIdx].tasks = srcTasks;
+        newColumns[destIdx].tasks = destTasks;
+        return { ...board, columns: newColumns };
+      }
+    });
   };
 
   const saveTitle = async (boardId: string) => {
@@ -57,9 +59,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
     setLoading(true);
     try {
       const res = await updateBoard(Number(boardId), { title: editedTitle });
-      setBoards(prev =>
-        prev.map(b => (b.id === boardId ? { ...b, title: res.data.title } : b))
-      );
+      setBoards(prev => prev.map(b => (b.id === boardId ? { ...b, title: res.data.title } : b)));
       setEditingBoardId(null);
     } catch {
       alert('แก้ไขชื่อบอร์ดไม่สำเร็จ');
@@ -81,38 +81,38 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
     }
   };
 
-  const openInviteModal = (boardId: string) => setInviteOpenBoardId(boardId);
-  const closeInviteModal = () => setInviteOpenBoardId(null);
-
   const addTask = (boardId: string, colId: string, task: Task) => {
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === boardId
-          ? {
-              ...board,
-              columns: board.columns.map(col =>
-                col.id === colId ? { ...col, tasks: [...col.tasks, task] } : col
-              ),
-            }
-          : board
-      )
-    );
+    updateBoardsColumns(boardId, board => ({
+      ...board,
+      columns: board.columns.map(col =>
+        col.id === colId ? { ...col, tasks: [...col.tasks, task] } : col
+      ),
+    }));
   };
 
-  const handleAddColumn = (boardId: string) => {
-    setBoards(prev =>
-      prev.map(board =>
-        board.id === boardId
-          ? {
-              ...board,
-              columns: [
-                ...board.columns,
-                { id: Date.now().toString(), title: 'New Column', tasks: [] },
-              ],
-            }
-          : board
-      )
-    );
+  const handleAddColumn = async (boardId: string) => {
+    setLoading(true);
+    try {
+      const position = boards.find(b => b.id === boardId)?.columns.length ?? 0;
+      const newColumn: ColumnOut = await createColumn(Number(boardId), {
+        title: 'New Column',
+        position,
+        board_id: Number(boardId),
+      });
+      const newColumnFormatted: Column = { ...newColumn, id: newColumn.id.toString(), tasks: [] };
+
+      setBoards(prev =>
+        prev.map(board =>
+          board.id === boardId
+            ? { ...board, columns: [...board.columns, newColumnFormatted] }
+            : board
+        )
+      );
+    } catch {
+      alert('เพิ่มคอลัมน์ไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -140,7 +140,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
               <>
                 <h2>{board.title}</h2>
                 <button
-                  onClick={() => openInviteModal(board.id)}
+                  onClick={() => setInviteOpenBoardId(board.id)}
                   title="Invite member"
                   disabled={loading}
                 >
@@ -202,7 +202,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
           </DragDropContext>
 
           {inviteOpenBoardId === board.id && (
-            <InviteMemberModal boardId={board.id} onClose={closeInviteModal} />
+            <InviteMemberModal boardId={board.id} onClose={() => setInviteOpenBoardId(null)} />
           )}
         </div>
       ))}

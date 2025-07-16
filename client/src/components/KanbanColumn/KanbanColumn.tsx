@@ -1,3 +1,4 @@
+// KanbanColumn.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskCard from '../TaskCard/TaskCard';
@@ -18,6 +19,8 @@ export interface Column {
   title: string;
   tasks: Task[];
   addTask?: (task: Task) => void;
+  editColumn?: (id: number, title: string) => Promise<void>;
+  removeColumn?: (id: number) => Promise<void>;
 }
 
 const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
@@ -53,6 +56,21 @@ const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
     setTags('');
   };
 
+  const handleEditColumn = () => {
+    const newTitle = prompt('ชื่อคอลัมน์ใหม่', column.title);
+    if (newTitle && newTitle.trim() !== '') {
+      column.editColumn && column.editColumn(Number(column.id), newTitle.trim());
+    }
+    setMenuOpen(false);
+  };
+
+  const handleDeleteColumn = () => {
+    if (window.confirm('ต้องการลบคอลัมน์นี้ใช่ไหม?')) {
+      column.removeColumn && column.removeColumn(Number(column.id));
+    }
+    setMenuOpen(false);
+  };
+
   return (
     <div className="kanban-column">
       <header className="column-header">
@@ -62,10 +80,10 @@ const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
           <button className="menu-btn" onClick={() => setMenuOpen(o => !o)}>⋯</button>
           {menuOpen && (
             <ul className="menu-list">
-              <li className="menu-item edit" onClick={() => alert('Edit Column')}>
+              <li className="menu-item edit" onClick={handleEditColumn}>
                 Edit Column
               </li>
-              <li className="menu-item delete" onClick={() => alert('Delete Column')}>
+              <li className="menu-item delete" onClick={handleDeleteColumn}>
                 Delete Column
               </li>
             </ul>

@@ -12,8 +12,12 @@ def create_column(board_id: int, data: BoardColumnCreate, current=Depends(get_cu
     board = db.query(Board).get(board_id)
     if not board:
         raise HTTPException(status_code=404, detail="Board not found")
-    col = BoardColumn(**data.dict(), board_id=board_id)
-    db.add(col); db.commit(); db.refresh(col)
+    col_data = data.dict()
+    col_data.pop('board_id', None)
+    col = BoardColumn(**col_data, board_id=board_id)
+    db.add(col)
+    db.commit()
+    db.refresh(col)
     return col
 
 @router.put("/{column_id}", response_model=BoardColumnOut)
