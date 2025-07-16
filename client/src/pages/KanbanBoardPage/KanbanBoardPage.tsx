@@ -1,4 +1,3 @@
-// src/pages/KanbanBoardPage/KanbanBoardPage.tsx
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar/Navbar';
 import AuthModal from '../../components/AuthModal/AuthModal';
@@ -9,11 +8,17 @@ import { createBoard, deleteBoard } from '../../api/boards';
 import { useBoards } from '../../hooks/useBoards';
 import './KanbanBoardPage.css';
 
+interface Board {
+  id: string;
+  title: string;
+  columns: Column[];
+}
+
 const KanbanBoardPage: React.FC = () => {
   const { user: authUser, logout } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
 
-  const { boards, setBoards, loading, error } = useBoards(authUser);
+  const { boards, setBoards, loading, error, renameBoard } = useBoards(authUser);
 
   const handleLoginSuccess = () => {
     setShowAuth(false);
@@ -50,12 +55,15 @@ const KanbanBoardPage: React.FC = () => {
     }
   };
 
-  const handleRenameBoard = (boardId: string) => {
+  const handleRenameBoard = async (boardId: string) => {
     const newTitle = prompt('Enter new board name:');
     if (!newTitle) return;
-    setBoards(prev =>
-      prev.map(b => (b.id === boardId ? { ...b, title: newTitle } : b))
-    );
+    try {
+      await renameBoard(Number(boardId), newTitle);
+    } catch (error) {
+      console.error('Failed to rename board:', error);
+      alert('แก้ไขชื่อบอร์ดไม่สำเร็จ กรุณาลองใหม่');
+    }
   };
 
   const handleAddColumn = (boardId: string) => {
