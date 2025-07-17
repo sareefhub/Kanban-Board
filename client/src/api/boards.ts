@@ -62,8 +62,9 @@ export async function fetchColumns(boardId: number) {
 
 export async function createColumn(boardId: number, title: string) {
   try {
-    const response = await api.post<Column>(`/boards/${boardId}/columns`, { title });
-    return response;
+    await api.post<Column>(`/boards/${boardId}/columns`, { title });
+    const updatedColumns = await fetchColumns(boardId);
+    return updatedColumns;
   } catch (error: any) {
     throw new Error(error.response?.data?.detail || 'Failed to create column');
   }
@@ -71,8 +72,9 @@ export async function createColumn(boardId: number, title: string) {
 
 export async function updateColumn(boardId: number, columnId: number, title: string) {
   try {
-    const response = await api.put<Column>(`/boards/${boardId}/columns/${columnId}`, { title });
-    return response;
+    await api.put<Column>(`/boards/${boardId}/columns/${columnId}`, { title });
+    const updatedColumns = await fetchColumns(boardId);
+    return updatedColumns;
   } catch (error: any) {
     throw new Error(error.response?.data?.detail || 'Failed to update column');
   }
@@ -80,8 +82,9 @@ export async function updateColumn(boardId: number, columnId: number, title: str
 
 export async function deleteColumn(boardId: number, columnId: number) {
   try {
-    const response = await api.delete(`/boards/${boardId}/columns/${columnId}`);
-    return response;
+    await api.delete(`/boards/${boardId}/columns/${columnId}`);
+    const updatedColumns = await fetchColumns(boardId);
+    return updatedColumns;
   } catch (error: any) {
     throw new Error(error.response?.data?.detail || 'Failed to delete column');
   }

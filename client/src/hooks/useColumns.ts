@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { Column, Task } from '../components/KanbanColumn/KanbanColumn';
 import { updateColumn, deleteColumn } from '../api/columns';
+import type { Board } from '../hooks/useBoards';
+import { fetchColumns } from '../api/boards';
 
-export const useColumns = (column: Column, boardId: number, setColumns: React.Dispatch<React.SetStateAction<Column[]>>) => {
+export const useColumns = (
+  column: Column,
+  boardId: string,
+  setBoards: React.Dispatch<React.SetStateAction<Board[]>>
+) => {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
@@ -35,34 +41,53 @@ export const useColumns = (column: Column, boardId: number, setColumns: React.Di
     setTags('');
   };
 
-  const handleEditColumn = () => {
+  const handleEditColumn = async () => {
     const newTitle = prompt('ชื่อคอลัมน์ใหม่', column.title);
     if (newTitle && newTitle.trim() !== '') {
-        updateColumn(boardId, Number(column.id), { title: newTitle.trim() })
-        .then(updated => {
-            const updatedColumn: Column = {
-              ...updated,
-              id: updated.id.toString(),
-              tasks: column.tasks || [],
+      try {
+        await updateColumn(Number(boardId), Number(column.id), { title: newTitle.trim() });
+        const updatedColumns = await fetchColumns(Number(boardId));
+        setBoards(boards =>
+          boards.map(board => {
+            if (board.id !== boardId) return board;
+            return {
+              ...board,
+              columns: updatedColumns.data.map(col => ({
+                ...col,
+                id: col.id.toString(),
+                tasks: col.tasks || [],
+              })),
             };
-            setColumns(cols =>
-              cols.map(c =>
-                c.id === column.id ? updatedColumn : c
-              )
-            );
-        })
-        .catch(() => alert('แก้ไขคอลัมน์ไม่สำเร็จ'));
+          })
+        );
+      } catch {
+        alert('แก้ไขคอลัมน์ไม่สำเร็จ');
+      }
     }
     setMenuOpen(false);
   };
 
-  const handleDeleteColumn = () => {
+  const handleDeleteColumn = async () => {
     if (window.confirm('ต้องการลบคอลัมน์นี้ใช่ไหม?')) {
-      deleteColumn(boardId, Number(column.id))
-        .then(() => {
-          setColumns(cols => cols.filter(c => c.id !== column.id));
-        })
-        .catch(() => alert('ลบคอลัมน์ไม่สำเร็จ'));
+      try {
+        await deleteColumn(Number(boardId), Number(column.id));
+        const updatedColumns = await fetchColumns(Number(boardId));
+        setBoards(boards =>
+          boards.map(board => {
+            if (board.id !== boardId) return board;
+            return {
+              ...board,
+              columns: updatedColumns.data.map(col => ({
+                ...col,
+                id: col.id.toString(),
+                tasks: col.tasks || [],
+              })),
+            };
+          })
+        );
+      } catch {
+        alert('ลบคอลัมน์ไม่สำเร็จ');
+      }
     }
     setMenuOpen(false);
   };

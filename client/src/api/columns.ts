@@ -1,5 +1,15 @@
 import { api } from './client';
 
+export interface Task {
+  id: number;
+  title: string;
+  description?: string;
+  tags?: string[];
+  priority?: 'low' | 'medium' | 'high';
+  assignee?: string;
+  date?: string;
+}
+
 export interface ColumnCreate {
   title: string;
   position: number;
@@ -14,6 +24,7 @@ export interface ColumnOut {
   id: number;
   title: string;
   board_id: number;
+  tasks: Task[];
 }
 
 export async function createColumn(boardId: number, data: ColumnCreate) {
@@ -29,4 +40,9 @@ export async function updateColumn(boardId: number, columnId: number, data: Colu
 export async function deleteColumn(boardId: number, columnId: number) {
   const response = await api.delete(`/boards/${boardId}/columns/${columnId}`);
   return response.data;
+}
+
+export async function fetchColumns(boardId: number) {
+  const response = await api.get<ColumnOut[]>(`/boards/${boardId}/columns`);
+  return response;
 }

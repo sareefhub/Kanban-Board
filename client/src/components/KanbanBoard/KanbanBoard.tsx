@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
+import React from 'react';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import KanbanColumn from '../KanbanColumn/KanbanColumn';
 import { Task, Column } from '../KanbanColumn/KanbanColumn';
 import { useKanbanBoard } from '../../hooks/useKanbanBoard';
@@ -101,7 +101,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
                           ...col,
                           addTask: (task: Task) => addTask(board.id, col.id, task),
                         }}
-                        boardId={Number(board.id)}
+                        boardId={board.id}
                       />
                       {provided.placeholder}
                     </div>

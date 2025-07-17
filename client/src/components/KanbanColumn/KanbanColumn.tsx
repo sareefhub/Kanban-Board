@@ -23,7 +23,7 @@ export interface Column {
   removeColumn?: (id: number) => Promise<void>;
 }
 
-const KanbanColumn: React.FC<{ column: Column; boardId: number }> = ({ column, boardId }) => {
+const KanbanColumn: React.FC<{ column: Column; boardId: string }> = ({ column, boardId }) => {
   const {
     editing,
     setEditing,
