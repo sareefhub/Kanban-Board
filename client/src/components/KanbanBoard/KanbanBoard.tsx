@@ -31,6 +31,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
     handleDeleteBoard,
     addTask,
     handleAddColumn,
+    fetchAllBoards,
   } = useKanbanBoard({ boards, setBoards });
 
   return (
@@ -102,6 +103,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
                           addTask: (task: Task) => addTask(board.id, col.id, task),
                         }}
                         boardId={board.id}
+                        fetchAllBoards={fetchAllBoards}  // ส่ง prop นี้ลงไปให้ KanbanColumn
                       />
                       {provided.placeholder}
                     </div>

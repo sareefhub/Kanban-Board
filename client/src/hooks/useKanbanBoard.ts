@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Column, Task } from '../components/KanbanColumn/KanbanColumn';
 import { updateBoard, deleteBoard } from '../api/boards';
 import { createColumn, ColumnOut } from '../api/columns';
-
+import { listBoards, fetchColumns } from '../api/boards';
 
 interface Board {
   id: string;
@@ -21,6 +21,35 @@ export const useKanbanBoard = ({ boards, setBoards }: UseKanbanBoardParams) => {
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
   const [editedTitle, setEditedTitle] = useState('');
 
+  const fetchAllBoards = async () => {
+    setLoading(true);
+    try {
+      const response = await listBoards();
+      const boardsData = response.data;
+      const boardsWithColumns = await Promise.all(
+        boardsData.map(async (board) => {
+          const colsRes = await fetchColumns(board.id);
+          const colsData = colsRes.data;
+          const colsWithTasks: Column[] = colsData.map(col => ({
+            ...col,
+            id: col.id.toString(),
+            tasks: col.tasks || [],
+          }));
+          return {
+            id: board.id.toString(),
+            title: board.title,
+            columns: colsWithTasks,
+          };
+        })
+      );
+      setBoards(boardsWithColumns);
+    } catch {
+      alert('โหลดบอร์ดไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateBoardsColumns = (boardId: string, updater: (board: Board) => Board) => {
     setBoards(prev =>
       prev.map(board => (board.id === boardId ? updater(board) : board))
@@ -29,7 +58,6 @@ export const useKanbanBoard = ({ boards, setBoards }: UseKanbanBoardParams) => {
 
   const onDragEnd = (boardId: string, { source, destination }: any) => {
     if (!destination) return;
-
     updateBoardsColumns(boardId, board => {
       const srcIdx = board.columns.findIndex(c => c.id === source.droppableId);
       const destIdx = board.columns.findIndex(c => c.id === destination.droppableId);
@@ -98,7 +126,6 @@ export const useKanbanBoard = ({ boards, setBoards }: UseKanbanBoardParams) => {
         board_id: Number(boardId),
       });
       const newColumnFormatted: Column = { ...newColumn, id: newColumn.id.toString(), tasks: [] };
-
       setBoards(prev =>
         prev.map(board =>
           board.id === boardId
@@ -126,5 +153,6 @@ export const useKanbanBoard = ({ boards, setBoards }: UseKanbanBoardParams) => {
     handleDeleteBoard,
     addTask,
     handleAddColumn,
+    fetchAllBoards,
   };
 };

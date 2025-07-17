@@ -1,3 +1,4 @@
+// src/hooks/useBoards.ts
 import { useState, useEffect } from 'react';
 import { listBoards, fetchColumns, updateBoard } from '../api/boards';
 import type { Column } from '../components/KanbanColumn/KanbanColumn';

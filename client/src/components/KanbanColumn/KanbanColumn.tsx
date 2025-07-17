@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+// ตัวอย่างการเรียกใช้ useColumns ใน KanbanColumn.tsx
+import React, { useEffect } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskCard from '../TaskCard/TaskCard';
 import './KanbanColumn.css';
@@ -19,11 +20,13 @@ export interface Column {
   title: string;
   tasks: Task[];
   addTask?: (task: Task) => void;
-  editColumn?: (id: number, title: string) => Promise<void>;
-  removeColumn?: (id: number) => Promise<void>;
 }
 
-const KanbanColumn: React.FC<{ column: Column; boardId: string }> = ({ column, boardId }) => {
+const KanbanColumn: React.FC<{ column: Column; boardId: string; fetchAllBoards: () => Promise<void> }> = ({
+  column,
+  boardId,
+  fetchAllBoards,
+}) => {
   const {
     editing,
     setEditing,
@@ -39,7 +42,7 @@ const KanbanColumn: React.FC<{ column: Column; boardId: string }> = ({ column, b
     submitTask,
     handleEditColumn,
     handleDeleteColumn,
-  } = useColumns(column, boardId, () => {});
+  } = useColumns(column, boardId, fetchAllBoards);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -60,17 +63,12 @@ const KanbanColumn: React.FC<{ column: Column; boardId: string }> = ({ column, b
           <button className="menu-btn" onClick={() => setMenuOpen(o => !o)}>⋯</button>
           {menuOpen && (
             <ul className="menu-list">
-              <li className="menu-item edit" onClick={handleEditColumn}>
-                Edit Column
-              </li>
-              <li className="menu-item delete" onClick={handleDeleteColumn}>
-                Delete Column
-              </li>
+              <li className="menu-item edit" onClick={handleEditColumn}>Edit Column</li>
+              <li className="menu-item delete" onClick={handleDeleteColumn}>Delete Column</li>
             </ul>
           )}
         </div>
       </header>
-
       <Droppable droppableId={column.id} type="TASK">
         {provided => (
           <div className="tasks-list" ref={provided.innerRef} {...provided.droppableProps}>
@@ -92,37 +90,18 @@ const KanbanColumn: React.FC<{ column: Column; boardId: string }> = ({ column, b
           </div>
         )}
       </Droppable>
-
       {editing ? (
         <div className="task-form">
-          <input
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Task title"
-          />
-          <textarea
-            value={desc}
-            onChange={e => setDesc(e.target.value)}
-            placeholder="Task description"
-          />
-          <input
-            value={tags}
-            onChange={e => setTags(e.target.value)}
-            placeholder="Tags, comma separated"
-          />
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Task title" />
+          <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="Task description" />
+          <input value={tags} onChange={e => setTags(e.target.value)} placeholder="Tags, comma separated" />
           <div className="form-actions">
-            <button className="add-btn" onClick={submitTask} disabled={!title.trim()}>
-              Add Task
-            </button>
-            <button className="cancel-btn" onClick={() => setEditing(false)}>
-              Cancel
-            </button>
+            <button className="add-btn" onClick={submitTask} disabled={!title.trim()}>Add Task</button>
+            <button className="cancel-btn" onClick={() => setEditing(false)}>Cancel</button>
           </div>
         </div>
       ) : (
-        <button className="add-task" onClick={() => setEditing(true)}>
-          + Add a task
-        </button>
+        <button className="add-task" onClick={() => setEditing(true)}>+ Add a task</button>
       )}
     </div>
   );
