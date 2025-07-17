@@ -13,7 +13,9 @@ def create_task(column_id: int, data: TaskCreate, current=Depends(get_current_us
     col = db.query(BoardColumn).get(column_id)
     if not col:
         raise HTTPException(status_code=404, detail="Column not found")
-    t = Task(**data.dict(), column_id=column_id)
+    data_dict = data.model_dump()
+    data_dict.pop('priority', None)
+    t = Task(**data_dict, column_id=column_id)
     db.add(t)
     db.commit()
     db.refresh(t)

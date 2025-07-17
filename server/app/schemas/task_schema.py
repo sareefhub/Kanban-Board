@@ -4,7 +4,7 @@ from typing import Optional
 class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
-    priority: str
+    priority: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -21,7 +21,7 @@ class TaskOut(BaseModel):
     id: int
     title: str
     description: Optional[str] = None
-    priority: str
+    priority: Optional[str] = None
 
     class Config:
         from_attributes = True
