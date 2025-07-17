@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import KanbanColumn, { Column, Task } from '../KanbanColumn/KanbanColumn';
-import { updateBoard, deleteBoard } from '../../api/boards';
-import { createColumn, ColumnOut } from '../../api/columns';
+import KanbanColumn from '../KanbanColumn/KanbanColumn';
+import { Task, Column } from '../KanbanColumn/KanbanColumn';
+import { useKanbanBoard } from '../../hooks/useKanbanBoard';
 import InviteMemberModal from '../InviteMemberModal/InviteMemberModal';
 import './KanbanBoard.css';
 
@@ -18,102 +18,20 @@ interface Props {
 }
 
 const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
-  const [loading, setLoading] = useState(false);
-  const [inviteOpenBoardId, setInviteOpenBoardId] = useState<string | null>(null);
-  const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
-  const [editedTitle, setEditedTitle] = useState('');
-
-  const updateBoardsColumns = (boardId: string, updater: (board: Board) => Board) => {
-    setBoards(prev =>
-      prev.map(board => (board.id === boardId ? updater(board) : board))
-    );
-  };
-
-  const onDragEnd = (boardId: string, { source, destination }: DropResult) => {
-    if (!destination) return;
-
-    updateBoardsColumns(boardId, board => {
-      const srcIdx = board.columns.findIndex(c => c.id === source.droppableId);
-      const destIdx = board.columns.findIndex(c => c.id === destination.droppableId);
-      const srcTasks = [...board.columns[srcIdx].tasks];
-      const [moved] = srcTasks.splice(source.index, 1);
-
-      if (srcIdx === destIdx) {
-        srcTasks.splice(destination.index, 0, moved);
-        const newColumns = [...board.columns];
-        newColumns[srcIdx].tasks = srcTasks;
-        return { ...board, columns: newColumns };
-      } else {
-        const destTasks = [...board.columns[destIdx].tasks];
-        destTasks.splice(destination.index, 0, moved);
-        const newColumns = [...board.columns];
-        newColumns[srcIdx].tasks = srcTasks;
-        newColumns[destIdx].tasks = destTasks;
-        return { ...board, columns: newColumns };
-      }
-    });
-  };
-
-  const saveTitle = async (boardId: string) => {
-    if (!editedTitle.trim()) return alert('กรุณาใส่ชื่อบอร์ด');
-    setLoading(true);
-    try {
-      const res = await updateBoard(Number(boardId), { title: editedTitle });
-      setBoards(prev => prev.map(b => (b.id === boardId ? { ...b, title: res.data.title } : b)));
-      setEditingBoardId(null);
-    } catch {
-      alert('แก้ไขชื่อบอร์ดไม่สำเร็จ');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteBoard = async (boardId: string) => {
-    if (!window.confirm('ต้องการลบบอร์ดนี้ใช่ไหม?')) return;
-    setLoading(true);
-    try {
-      await deleteBoard(Number(boardId));
-      setBoards(prev => prev.filter(b => b.id !== boardId));
-    } catch {
-      alert('ลบบอร์ดไม่สำเร็จ');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addTask = (boardId: string, colId: string, task: Task) => {
-    updateBoardsColumns(boardId, board => ({
-      ...board,
-      columns: board.columns.map(col =>
-        col.id === colId ? { ...col, tasks: [...col.tasks, task] } : col
-      ),
-    }));
-  };
-
-  const handleAddColumn = async (boardId: string) => {
-    setLoading(true);
-    try {
-      const position = boards.find(b => b.id === boardId)?.columns.length ?? 0;
-      const newColumn: ColumnOut = await createColumn(Number(boardId), {
-        title: 'New Column',
-        position,
-        board_id: Number(boardId),
-      });
-      const newColumnFormatted: Column = { ...newColumn, id: newColumn.id.toString(), tasks: [] };
-
-      setBoards(prev =>
-        prev.map(board =>
-          board.id === boardId
-            ? { ...board, columns: [...board.columns, newColumnFormatted] }
-            : board
-        )
-      );
-    } catch {
-      alert('เพิ่มคอลัมน์ไม่สำเร็จ');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    loading,
+    inviteOpenBoardId,
+    editingBoardId,
+    editedTitle,
+    setEditedTitle,
+    setEditingBoardId,
+    setInviteOpenBoardId,
+    onDragEnd,
+    saveTitle,
+    handleDeleteBoard,
+    addTask,
+    handleAddColumn,
+  } = useKanbanBoard({ boards, setBoards });
 
   return (
     <div>
