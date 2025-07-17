@@ -1,49 +1,86 @@
-import { useState } from 'react';
-import { createColumn, updateColumn, deleteColumn, ColumnOut } from '../api/columns';
+import { useState, useEffect, useRef } from 'react';
+import { Column, Task } from '../components/KanbanColumn/KanbanColumn';
+import { updateColumn, deleteColumn } from '../api/columns';
 
-export const useColumns = (
-  boardId: number,
-  setColumns: React.Dispatch<React.SetStateAction<ColumnOut[]>>
-) => {
-  const [loading, setLoading] = useState(false);
+export const useColumns = (column: Column, boardId: number, setColumns: React.Dispatch<React.SetStateAction<Column[]>>) => {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [tags, setTags] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const addColumn = async (title: string) => {
-    setLoading(true);
-    try {
-      const position = 0; // กำหนดตำแหน่ง หรือถ้ามี columns ให้ส่งความยาวแทน
-      const newCol = await createColumn(boardId, { title, position, board_id: boardId });
-      setColumns(cols => [...cols, newCol]);
-    } catch {
-      alert('สร้างคอลัมน์ไม่สำเร็จ');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const submitTask = () => {
+    const task: Task = {
+      id: `${Date.now()}`,
+      title: title.trim(),
+      description: desc.trim(),
+      tags: tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+      priority: 'low',
+    };
+    column.addTask?.(task);
+    setEditing(false);
+    setTitle('');
+    setDesc('');
+    setTags('');
   };
 
-  const editColumn = async (columnId: number, title: string) => {
-    setLoading(true);
-    try {
-      const updated = await updateColumn(boardId, columnId, { title });
-      setColumns(cols => cols.map(c => (c.id === columnId ? updated : c)));
-    } catch {
-      alert('แก้ไขคอลัมน์ไม่สำเร็จ');
-    } finally {
-      setLoading(false);
+  const handleEditColumn = () => {
+    const newTitle = prompt('ชื่อคอลัมน์ใหม่', column.title);
+    if (newTitle && newTitle.trim() !== '') {
+        updateColumn(boardId, Number(column.id), { title: newTitle.trim() })
+        .then(updated => {
+            const updatedColumn: Column = {
+              ...updated,
+              id: updated.id.toString(),
+              tasks: column.tasks || [],
+            };
+            setColumns(cols =>
+              cols.map(c =>
+                c.id === column.id ? updatedColumn : c
+              )
+            );
+        })
+        .catch(() => alert('แก้ไขคอลัมน์ไม่สำเร็จ'));
     }
+    setMenuOpen(false);
   };
 
-  const removeColumn = async (columnId: number) => {
-    if (!window.confirm('ต้องการลบคอลัมน์นี้ใช่ไหม?')) return;
-    setLoading(true);
-    try {
-      await deleteColumn(boardId, columnId);
-      setColumns(cols => cols.filter(c => c.id !== columnId));
-    } catch {
-      alert('ลบคอลัมน์ไม่สำเร็จ');
-    } finally {
-      setLoading(false);
+  const handleDeleteColumn = () => {
+    if (window.confirm('ต้องการลบคอลัมน์นี้ใช่ไหม?')) {
+      deleteColumn(boardId, Number(column.id))
+        .then(() => {
+          setColumns(cols => cols.filter(c => c.id !== column.id));
+        })
+        .catch(() => alert('ลบคอลัมน์ไม่สำเร็จ'));
     }
+    setMenuOpen(false);
   };
 
-  return { addColumn, editColumn, removeColumn, loading };
+  return {
+    editing,
+    setEditing,
+    title,
+    setTitle,
+    desc,
+    setDesc,
+    tags,
+    setTags,
+    menuOpen,
+    setMenuOpen,
+    menuRef,
+    submitTask,
+    handleEditColumn,
+    handleDeleteColumn,
+  };
 };

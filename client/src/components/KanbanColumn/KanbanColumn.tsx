@@ -1,8 +1,8 @@
-// KanbanColumn.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskCard from '../TaskCard/TaskCard';
 import './KanbanColumn.css';
+import { useColumns } from '../../hooks/useColumns';
 
 export interface Task {
   id: string;
@@ -23,13 +23,23 @@ export interface Column {
   removeColumn?: (id: number) => Promise<void>;
 }
 
-const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
-  const [editing, setEditing] = useState(false);
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [tags, setTags] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+const KanbanColumn: React.FC<{ column: Column; boardId: number }> = ({ column, boardId }) => {
+  const {
+    editing,
+    setEditing,
+    title,
+    setTitle,
+    desc,
+    setDesc,
+    tags,
+    setTags,
+    menuOpen,
+    setMenuOpen,
+    menuRef,
+    submitTask,
+    handleEditColumn,
+    handleDeleteColumn,
+  } = useColumns(column, boardId, () => {});
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -40,36 +50,6 @@ const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const submit = () => {
-    const task: Task = {
-      id: `${Date.now()}`,
-      title: title.trim(),
-      description: desc.trim(),
-      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-      priority: 'low',
-    };
-    column.addTask?.(task);
-    setEditing(false);
-    setTitle('');
-    setDesc('');
-    setTags('');
-  };
-
-  const handleEditColumn = () => {
-    const newTitle = prompt('ชื่อคอลัมน์ใหม่', column.title);
-    if (newTitle && newTitle.trim() !== '') {
-      column.editColumn && column.editColumn(Number(column.id), newTitle.trim());
-    }
-    setMenuOpen(false);
-  };
-
-  const handleDeleteColumn = () => {
-    if (window.confirm('ต้องการลบคอลัมน์นี้ใช่ไหม?')) {
-      column.removeColumn && column.removeColumn(Number(column.id));
-    }
-    setMenuOpen(false);
-  };
 
   return (
     <div className="kanban-column">
@@ -97,11 +77,7 @@ const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
             {column.tasks.map((task, idx) => (
               <Draggable key={task.id} draggableId={task.id} index={idx}>
                 {prov => (
-                  <div
-                    ref={prov.innerRef}
-                    {...prov.draggableProps}
-                    {...prov.dragHandleProps}
-                  >
+                  <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
                     <TaskCard
                       task={task}
                       onEdit={updated => alert('Edit Task: ' + updated.id)}
@@ -135,7 +111,7 @@ const KanbanColumn: React.FC<{ column: Column }> = ({ column }) => {
             placeholder="Tags, comma separated"
           />
           <div className="form-actions">
-            <button className="add-btn" onClick={submit} disabled={!title.trim()}>
+            <button className="add-btn" onClick={submitTask} disabled={!title.trim()}>
               Add Task
             </button>
             <button className="cancel-btn" onClick={() => setEditing(false)}>

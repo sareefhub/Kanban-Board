@@ -101,6 +101,7 @@ const KanbanBoard: React.FC<Props> = ({ boards, setBoards }) => {
                           ...col,
                           addTask: (task: Task) => addTask(board.id, col.id, task),
                         }}
+                        boardId={Number(board.id)}
                       />
                       {provided.placeholder}
                     </div>
