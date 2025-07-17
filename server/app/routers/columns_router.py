@@ -7,6 +7,20 @@ from app.core.auth import get_current_user
 
 router = APIRouter(prefix="/boards/{board_id}/columns", tags=["columns"])
 
+@router.get("/", response_model=list[BoardColumnOut])
+def get_columns(board_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    columns = db.query(BoardColumn).filter(BoardColumn.board_id == board_id).all()
+    if not columns:
+        raise HTTPException(status_code=404, detail="No columns found for this board")
+    return columns
+
+@router.get("/{column_id}", response_model=BoardColumnOut)
+def get_column(board_id: int, column_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    column = db.query(BoardColumn).filter(BoardColumn.id == column_id, BoardColumn.board_id == board_id).first()
+    if not column:
+        raise HTTPException(status_code=404, detail="Column not found")
+    return column
+
 @router.post("/", response_model=BoardColumnOut, status_code=status.HTTP_201_CREATED)
 def create_column(board_id: int, data: BoardColumnCreate, current=Depends(get_current_user), db: Session = Depends(get_db)):
     board = db.query(Board).get(board_id)
