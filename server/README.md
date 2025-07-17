@@ -150,29 +150,26 @@ server/
 -   **Swagger UI:** `http://localhost:8000/docs`
 -   **ReDoc:** `http://localhost:8000/redoc`
 
-## 🧪 การทดสอบ
-
-```bash
-# รันการทดสอบทั้งหมด
-poetry run pytest
-
-# รันการทดสอบแบบ verbose
-poetry run pytest -v
-
-# รันการทดสอบพร้อมดูการครอบคลุม
-poetry run pytest --cov=app
-
-```
-
 ## 🔧 Environment Variables
 
 สร้างไฟล์ `.env` ในโฟลเดอร์รูท:
 
 ```env
-SECRET_KEY=your-secret-key-here
+
+# Database Configuration
+DATABASE_URL=postgresql://kanban:kanban@localhost:5432/kanban
+# DATABASE_URL=postgresql://kanban:kanban@db:5432/kanban
+POSTGRES_DB=kanban
+POSTGRES_USER=kanban
+POSTGRES_PASSWORD=kanban
+
+# JWT Configuration
+SECRET_KEY=your-secret-key-change-in-production
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-DATABASE_URL=sqlite:///./kanban.db
+
+# API Configuration
+API_URL=http://kanban-api:8000
 
 ```
 
