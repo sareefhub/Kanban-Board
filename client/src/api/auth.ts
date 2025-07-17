@@ -1,16 +1,6 @@
 // src/api/auth.ts
 import { api } from './client';
-
-export interface RegisterData {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginData {
-  username: string;
-  password: string;
-}
+import type { RegisterData, LoginData } from '../types/auth';
 
 export async function registerUser(data: RegisterData) {
   try {

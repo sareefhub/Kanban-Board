@@ -1,19 +1,7 @@
+// src/api/boards.ts
 import { api } from './client';
 import type { Column } from '../components/KanbanColumn/KanbanColumn';
-
-export interface BoardCreate {
-  title: string;
-}
-
-export interface BoardUpdate {
-  title: string;
-}
-
-export interface BoardOut {
-  id: number;
-  title: string;
-  owner_id?: number;
-}
+import type { BoardCreate, BoardUpdate, BoardOut } from '../types/board';
 
 export async function listBoards() {
   try {
