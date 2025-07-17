@@ -36,8 +36,8 @@ export function useTasks(columnId: number) {
   };
 
   const removeTask = async (taskId: number) => {
-    await deleteTask(columnId, taskId);
-    setTasks(prev => prev.filter(t => t.id !== taskId));
+    await deleteTask(String(columnId), String(taskId));
+    setTasks(prev => prev.filter(t => t.id !== Number(taskId)));
   };
 
   const changePosition = async (taskId: number, position: number) => {

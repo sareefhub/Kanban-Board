@@ -1,3 +1,4 @@
+// src/api/task.ts
 import { api } from './client';
 import type { TaskOut, TaskCreate, TaskUpdate } from '../types/task';
 
@@ -16,8 +17,9 @@ export async function updateTask(columnId: number, taskId: number, data: TaskUpd
   return response.data;
 }
 
-export async function deleteTask(columnId: number, taskId: number): Promise<void> {
-  await api.delete(`/columns/${columnId}/tasks/${taskId}`);
+export async function deleteTask(columnId: string, taskId: string) {
+  const response = await api.delete(`/columns/${columnId}/tasks/${taskId}`);
+  return response.data;
 }
 
 export async function reorderTask(columnId: number, taskId: number, position: number): Promise<TaskOut> {
