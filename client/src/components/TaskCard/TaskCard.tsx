@@ -13,7 +13,7 @@ const TaskCard: React.FC<Props> = ({ task, onEdit, onDelete, onAssign }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [desc, setDesc] = useState(task.description);
-  const [tags, setTags] = useState(task.tags.join(', '));
+  const [tags, setTags] = useState(task.tags ? task.tags.join(', ') : '');
 
   const save = () => {
     onEdit({
@@ -25,8 +25,10 @@ const TaskCard: React.FC<Props> = ({ task, onEdit, onDelete, onAssign }) => {
     setIsEditing(false);
   };
 
+  const tagsArray = task.tags ?? [];
+
   return (
-    <div className={`task-card ${task.priority}`}>
+    <div className="task-card">
       {isEditing ? (
         <>
           <input
@@ -74,7 +76,7 @@ const TaskCard: React.FC<Props> = ({ task, onEdit, onDelete, onAssign }) => {
           </div>
           <p className="task-desc">{task.description}</p>
           <div className="tags">
-            {task.tags.map(tag => (
+            {tagsArray.map(tag => (
               <span key={tag} className="tag">{tag}</span>
             ))}
           </div>

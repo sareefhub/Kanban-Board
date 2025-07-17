@@ -5,7 +5,6 @@ export interface Task {
   title: string;
   description?: string;
   tags?: string[];
-  priority?: 'low' | 'medium' | 'high';
   assignee?: string;
   date?: string;
 }

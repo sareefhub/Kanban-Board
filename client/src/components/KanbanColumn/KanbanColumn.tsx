@@ -1,16 +1,15 @@
-// ตัวอย่างการเรียกใช้ useColumns ใน KanbanColumn.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskCard from '../TaskCard/TaskCard';
 import './KanbanColumn.css';
 import { useColumns } from '../../hooks/useColumns';
+import { fetchTasks } from '../../api/task';
 
 export interface Task {
   id: string;
   title: string;
   description: string;
   tags: string[];
-  priority: 'low' | 'medium' | 'high';
   assignee?: string;
   date?: string;
 }
@@ -44,6 +43,20 @@ const KanbanColumn: React.FC<{ column: Column; boardId: string; fetchAllBoards: 
     handleDeleteColumn,
   } = useColumns(column, boardId, fetchAllBoards);
 
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    fetchTasks(Number(column.id))
+      .then(data => {
+        const tasksWithIdString = data.map(task => ({
+          ...task,
+          id: String(task.id),
+        }));
+        setTasks(tasksWithIdString);
+      })
+      .catch(() => setTasks([]));
+  }, [column.id]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -58,7 +71,7 @@ const KanbanColumn: React.FC<{ column: Column; boardId: string; fetchAllBoards: 
     <div className="kanban-column">
       <header className="column-header">
         <h3>{column.title}</h3>
-        <span className="task-count">{column.tasks.length}</span>
+        <span className="task-count">{tasks.length}</span>
         <div className="column-menu" ref={menuRef}>
           <button className="menu-btn" onClick={() => setMenuOpen(o => !o)}>⋯</button>
           {menuOpen && (
@@ -69,10 +82,10 @@ const KanbanColumn: React.FC<{ column: Column; boardId: string; fetchAllBoards: 
           )}
         </div>
       </header>
-      <Droppable droppableId={column.id} type="TASK">
+      <Droppable droppableId={String(column.id)} type="TASK">
         {provided => (
           <div className="tasks-list" ref={provided.innerRef} {...provided.droppableProps}>
-            {column.tasks.map((task, idx) => (
+            {tasks.map((task, idx) => (
               <Draggable key={task.id} draggableId={task.id} index={idx}>
                 {prov => (
                   <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>

@@ -1,7 +1,7 @@
-// src/hooks/useColumns.ts
 import { useState, useEffect, useRef } from 'react';
-import { Column, Task } from '../components/KanbanColumn/KanbanColumn';
+import type { Column, Task } from '../components/KanbanColumn/KanbanColumn';
 import { updateColumn, deleteColumn } from '../api/columns';
+import { createTask } from '../api/task';
 
 export const useColumns = (
   column: Column,
@@ -25,19 +25,22 @@ export const useColumns = (
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const submitTask = () => {
-    const task: Task = {
-      id: `${Date.now()}`,
-      title: title.trim(),
-      description: desc.trim(),
-      tags: tags.split(',').map((t: string) => t.trim()).filter(Boolean),
-      priority: 'low',
-    };
-    column.addTask?.(task);
-    setEditing(false);
-    setTitle('');
-    setDesc('');
-    setTags('');
+  const submitTask = async () => {
+    if (!title.trim()) return;
+    try {
+      await createTask(Number(column.id), {
+        title: title.trim(),
+        description: desc.trim(),
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      });
+      setEditing(false);
+      setTitle('');
+      setDesc('');
+      setTags('');
+      await fetchAllBoards();
+    } catch {
+      alert('เพิ่มงานไม่สำเร็จ');
+    }
   };
 
   const handleEditColumn = async () => {
